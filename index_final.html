@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Team Axis - Developer Trends Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+	  /* Light Theme Palette */
+	  --sidebar-bg:#2C3E50; /* muted navy */
+	  --sidebar-text:#ffffff;
+	  --primary-color:#B85042; /* warm clay */
+	  --accent-color:#A7BEAE; /* sage */
+	  --secondary-accent:#E7E8D1; /* cream */
+	  --muted:#2C3E50;
+	  --bg:#E7E8D1;
+	  --card-bg:#ffffff;
+
+	  --title-font:'Playfair Display',serif;
+	  --heading-font:'Poppins',sans-serif;
+	  --body-font:'Inter',sans-serif;
+    }
+
+	/* Dark Theme Variant */
+	[data-theme="dark"]{
+	  --sidebar-bg:#B85042; /* clay sidebar */
+	  --sidebar-text:#ffffff;
+
+	  --primary-color:#E7E8D1; /* cream highlight */
+	  --accent-color:#A7BEAE; /* sage */
+	  --secondary-accent:#2C3E50; /* muted navy for accents */
+
+	  --muted:#d9d9d9;
+
+	  --bg:#1b2631; /* dark navy background */
+	  --card-bg:#22303d; /* slightly lighter navy cards */
+	}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:var(--body-font);
+      background:var(--bg);color:var(--muted);
+      display:flex;transition:.3s;
+      min-height:100vh;
+    }
+    .sidebar{
+      position:fixed;left:0;top:0;width:230px;height:100vh;
+      background:linear-gradient(180deg,var(--sidebar-bg),#1a0f2e);
+      color:var(--sidebar-text);
+      padding:28px 18px;
+      display:flex;flex-direction:column;justify-content:space-between;
+      overflow-y:auto;
+    }
+    .brand{text-align:center}
+    .brand-logo{width:80px;height:80px;background:linear-gradient(135deg, var(--accent-color), var(--primary-color));border-radius:12px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;box-shadow:0 4px 15px rgba(255,107,157,0.4)}
+    .brand h2{font-family:var(--heading-font);font-weight:700;color:var(--sidebar-text)}
+    nav a, nav .dropdown-toggle{display:block;color:var(--sidebar-text);text-decoration:none;padding:8px 6px;border-radius:6px;font-weight:600;margin:6px 0;transition:.18s;cursor:pointer;position:relative}
+    nav a:hover, nav .dropdown-toggle:hover{background:rgba(255,107,157,0.2);color:var(--accent-color)}
+    nav .dropdown{display:none;margin-left:12px}
+    nav .dropdown a{padding-left:14px;font-weight:500}
+    .dropdown-toggle::after{
+      content:"\25BC";font-size:0.7em;position:absolute;right:10px;transition:transform 0.3s;
+    }
+    .dropdown-toggle.open::after{transform:rotate(-180deg);}
+    .theme-btn{
+      width:100%;border:2px solid var(--accent-color);
+      color:var(--sidebar-text);background:rgba(255,107,157,0.1);
+      border-radius:8px;padding:10px;font-weight:600;cursor:pointer;
+      transition:all 0.3s;
+    }
+    .theme-btn:hover{background:var(--accent-color);transform:translateY(-2px);box-shadow:0 4px 12px rgba(255,107,157,0.4)}
+    .content{margin-left:230px;padding:34px 34px 0 34px;width:calc(100% - 230px);display:flex;flex-direction:column;min-height:100vh}
+    .main-content{flex:1}
+    .hero{text-align:center;margin-bottom:26px;opacity:0;transform:translateY(20px);transition:opacity 0.8s ease-out, transform 0.8s ease-out}
+    .hero.visible{opacity:1;transform:translateY(0)}
+    .hero h1{font-family:var(--title-font);font-size:36px;background:linear-gradient(135deg, var(--primary-color), var(--accent-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero p.lead{color:var(--muted);font-size:16px;margin-top:8px;max-width:850px;margin-inline:auto}
+
+    .card{background:var(--card-bg);padding:26px;border-radius:16px;box-shadow:0 8px 25px rgba(106,27,154,0.12);margin-bottom:20px;opacity:0;transform:translateY(30px);transition:opacity 0.8s ease-out, transform 0.8s ease-out;border:1px solid rgba(255,107,157,0.1)}
+    .card.visible{opacity:1;transform:translateY(0)}
+    h3{font-family:var(--heading-font);color:var(--primary-color);margin-bottom:10px}
+
+    .tabs{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:10px;border-bottom:2px solid #e8d5f2}
+    [data-theme="dark"] .tabs{border-bottom-color:#4a2b5e}
+    .tab{cursor:pointer;padding:8px 10px;font-weight:600;color:var(--muted);position:relative;transition:color 0.3s}
+    .tab:hover{color:var(--primary-color)}
+    .tab.active{color:var(--primary-color)}
+    .tab.active::after{
+      content:"";position:absolute;bottom:-2px;left:0;height:3px;width:100%;
+      background:linear-gradient(90deg, var(--accent-color), var(--secondary-accent));border-radius:3px;
+    }
+    .info-wrapper{position:relative;min-height:220px}
+    .info-content{position:absolute;top:0;left:0;width:100%;opacity:0;visibility:hidden;transform:translateY(15px);transition:opacity 0.5s ease, transform 0.5s ease, visibility 0s 0.5s}
+    .info-content.active{opacity:1;visibility:visible;transform:translateY(0);transition:opacity 0.5s ease, transform 0.5s ease, visibility 0s 0s}
+    .info-content-layout{display:flex;gap:20px;align-items:flex-start}
+    .info-content-layout.reverse{flex-direction:row-reverse}
+    .info-text{flex:1}
+    .info-text p{margin-bottom:10px;line-height:1.7}
+    .info-text ul{margin-left:20px;margin-bottom:10px}
+    .info-text strong{color:var(--primary-color)}
+    .keyline{border-left:4px solid var(--accent-color);padding-left:12px;margin-bottom:10px;font-weight:600}
+    .info-placeholder{width:200px;height:180px;background:linear-gradient(135deg, var(--accent-color), var(--secondary-accent));border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0;font-weight:600;box-shadow:0 4px 15px rgba(255,107,157,0.3)}
+    [data-theme="dark"] .info-placeholder{background:linear-gradient(135deg, var(--primary-color), var(--accent-color))}
+
+    .story-section{margin-top:30px}
+    .story-block{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:24px;margin:40px 0;position:relative;
+      opacity:0;transform:translateY(30px);transition:opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .story-block.visible{opacity:1;transform:translateY(0)}
+    .story-block img{width:45%;border-radius:12px;box-shadow:0 6px 20px rgba(106,27,154,0.15)}
+    .story-text{width:50%}
+    .story-text h4{font-family:var(--heading-font);font-size:1.3rem;color:var(--primary-color);margin-bottom:6px}
+    .story-text p{font-size:1rem;line-height:1.7;color:var(--muted)}
+    .story-quote{font-style:italic;color:var(--accent-color);margin-top:10px;font-weight:500}
+    .story-badge{
+      display:inline-block;
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      color: var(--primary-color);
+      padding:6px 14px;
+      border-radius:16px;
+      font-size:0.85rem;
+      font-weight:700;
+      margin-bottom:8px;
+      transition: all 0.3s;
+    }
+    .section-title{font-family:var(--heading-font);font-size:28px;color:var(--primary-color);margin-bottom:20px;opacity:0;transform:translateY(20px);transition:opacity 0.8s ease-out, transform 0.8s ease-out}
+    .section-title.visible{opacity:1;transform:translateY(0)}
+
+    .hypothesis-card{margin-bottom:40px;padding:32px;opacity:0;transform:translateY(30px);transition:opacity 0.8s ease-out, transform 0.8s ease-out}
+    .hypothesis-card.visible{opacity:1;transform:translateY(0)}
+    .hypothesis-card p{margin-bottom:20px;line-height:1.8;font-size:15px}
+    .hypothesis-card h3{font-size:24px;line-height:1.3;margin-bottom:15px;letter-spacing:-0.5px}
+    
+    footer{text-align:center;padding:40px 20px;color:var(--muted);opacity:0;transform:translateY(20px);transition:opacity 0.8s ease-out, transform 0.8s ease-out;background:linear-gradient(180deg, transparent, rgba(106,27,154,0.05));margin-top:60px;border-top:2px solid rgba(255,107,157,0.2)}
+    footer.visible{opacity:1;transform:translateY(0)}
+    footer p{font-size:16px;font-weight:500}
+	
+	.info-placeholder img{
+	  width:100%;
+	  height:100%;
+	  object-fit:cover;
+	  border-radius:12px;
+	  display:block;
+	}
+
+    /* Dashboard Status Badges */
+    .status-badge {
+      background: var(--card-bg);
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid rgba(167, 190, 174, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .status-badge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(167, 190, 174, 0.2);
+    }
+    .status-dot {
+      font-size: 20px;
+      color: #95a5a6;
+    }
+    .status-badge.online .status-dot {
+      color: #27ae60;
+      animation: pulse 2s infinite;
+    }
+    .status-badge.offline .status-dot {
+      color: #e74c3c;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Loading States for iframes */
+    .iframe-container {
+      position: relative;
+      width: 100%;
+      min-height: 600px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid rgba(167, 190, 174, 0.2);
+      overflow: hidden;
+    }
+    .iframe-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--muted);
+    }
+    .spinner {
+      border: 3px solid rgba(167, 190, 174, 0.3);
+      border-top: 3px solid var(--accent-color);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    iframe.plot {
+      width: 100%;
+      min-height: 600px;
+      border: none;
+      border-radius: 12px;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    iframe.plot.loaded {
+      opacity: 1;
+    }
+
+    /* Open in New Tab Button */
+    .expand-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      color: var(--primary-color);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 10;
+      transition: all 0.3s;
+      display: inline-block;
+    }
+    .expand-btn:hover {
+      background: var(--accent-color);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(167, 190, 174, 0.3);
+    }
+
+    /* Quick Navigation */
+    .quick-nav {
+      position: sticky;
+      top: 20px;
+      z-index: 100;
+      background: rgba(167, 190, 174, 0.15);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(106,27,154,0.12);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .quick-nav-title {
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--primary-color);
+      width: 100%;
+      text-align: center;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .quick-link {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      color: var(--primary-color);
+      padding: 8px 16px;
+      border-radius: 16px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.3s;
+      box-shadow: none;
+    }
+    .quick-link:hover {
+      transform: translateY(-2px);
+      background: var(--accent-color);
+      color: white;
+      box-shadow: 0 3px 10px rgba(167, 190, 174, 0.3);
+    }
+
+    /* Back to Top Button */
+    #backToTop {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      color: var(--primary-color);
+      padding: 15px 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(167, 190, 174, 0.3);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+    #backToTop.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    #backToTop:hover {
+      background: var(--accent-color);
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(167, 190, 174, 0.5);
+    }
+
+    /* Hypothesis Metadata */
+    .hyp-metadata {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      padding: 12px;
+      background: rgba(167, 190, 174, 0.05);
+      border-radius: 8px;
+    }
+    .hyp-meta-item {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .hyp-meta-item strong {
+      color: var(--primary-color);
+    }
+    .port-badge {
+      background: rgba(167, 190, 174, 0.2);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    /* Dashboard Category Headers */
+    .dashboard-category {
+      margin: 40px 0 20px 0;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(167, 190, 174, 0.1), rgba(184, 80, 66, 0.1));
+      border-radius: 12px;
+      border-left: 5px solid var(--primary-color);
+    }
+    .dashboard-category h3 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: var(--primary-color);
+    }
+    .dashboard-category p {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    /* Category Color Coding */
+    .category-work-mode { border-left: 5px solid #45B7D1; }
+    .category-compensation { border-left: 5px solid #F39C12; }
+    .category-technology { border-left: 5px solid #9B59B6; }
+
+    .hypothesis-card.category-work-mode .port-badge {
+      background: rgba(69, 183, 209, 0.15);
+      color: #45B7D1;
+    }
+    .hypothesis-card.category-compensation .port-badge {
+      background: rgba(243, 156, 18, 0.15);
+      color: #F39C12;
+    }
+    .hypothesis-card.category-technology .port-badge {
+      background: rgba(155, 89, 182, 0.15);
+      color: #9B59B6;
+    }
+
+    /* Key Insights Boxes */
+    .key-insights {
+      background: linear-gradient(135deg, rgba(231, 232, 209, 0.3), rgba(167, 190, 174, 0.2));
+      border-left: 4px solid var(--accent-color);
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+
+    .insight-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .insight-icon {
+      font-size: 18px;
+    }
+
+    .insight-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .insight-list li {
+      padding: 6px 0;
+      padding-left: 25px;
+      position: relative;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .insight-list li::before {
+      content: "\2192";
+      position: absolute;
+      left: 0;
+      color: var(--accent-color);
+      font-weight: 700;
+    }
+
+    /* Dashboard Preview Cards */
+    .dashboard-preview {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: linear-gradient(135deg, rgba(167, 190, 174, 0.08), rgba(231, 232, 209, 0.08));
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .preview-info {
+      display: flex;
+      gap: 30px;
+    }
+
+    .preview-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--accent-color);
+      opacity: 1;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .preview-features {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .feature-tag {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      color: var(--primary-color);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    /* Interaction Guide */
+    .interaction-guide {
+      padding: 12px;
+      background: rgba(167, 190, 174, 0.15);
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .guide-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--primary-color);
+      opacity: 1;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .control-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .control-pill {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 20px;
+      }
+      
+      .content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+      }
+      
+      .quick-nav {
+        position: relative;
+        top: 0;
+      }
+      
+      .hypothesis-card {
+        padding: 20px;
+      }
+      
+      .iframe-container {
+        min-height: 400px;
+      }
+      
+      iframe.plot {
+        min-height: 400px;
+      }
+      
+      .hyp-metadata {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .preview-info {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .story-block {
+        flex-direction: column;
+      }
+
+      .story-block img {
+        width: 100%;
+      }
+
+      .story-text {
+        width: 100%;
+      }
+    }
+
+  </style>
+</head>
+<body data-theme="dark">
+  <aside class="sidebar">
+    <div class="brand">
+	  <img src="images/logo.png" alt="Dashboard Logo" class="brand-logo">
+	  <h2>Team Axis</h2>
+	  <div style="font-size:12px;opacity:0.9">Developer trends: 2017-2025</div>
+	</div>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#aboutUs">About Us</a>
+      <div class="dropdown-toggle">Hypotheses</div>
+      <div class="dropdown">
+        <a href="#hyp1a">H1A</a>
+        <a href="#hyp1b">H1B</a>
+        <a href="#hyp2">H2</a>
+        <a href="#hyp3">H3</a>
+        <a href="#hyp4">H4</a>
+        <a href="#hyp5">H5</a>
+        <a href="#hyp6a">H6A</a>
+        <a href="#hyp6b">H6B</a>
+      </div>
+    </nav>
+    <button id="themeToggle" class="theme-btn">Toggle Theme</button>
+  </aside>
+
+  <main class="content">
+    <div class="main-content">
+      <div class="hero" id="home">
+        <h1>Developer Trends Dashboard</h1>
+        <p class="lead">
+          Exploring how the COVID-19 pandemic reshaped work, technology adoption, and developer satisfaction across 8 years of Stack Overflow survey data.
+        </p>
+      </div>
+
+      <section id="aboutUs" class="card">
+        <h3>About Team Axis</h3>
+        <div class="tabs" id="introTabs">
+          <div class="tab active" data-target="mission">Our Mission</div>
+          <div class="tab" data-target="approach">Our Approach</div>
+          <div class="tab" data-target="team">The Team</div>
+        </div>
+        <div class="info-wrapper">
+          <div id="mission" class="info-content active">
+            <div class="info-content-layout">
+              <div class="info-text">
+                <p class="keyline"><strong>Mission:</strong> Uncover meaningful patterns in developer work modes, satisfaction, and technology adoption through data-driven storytelling.</p>
+                <p>We combine rigorous statistical analysis with compelling visualisations to show not just <em>what</em> changed after COVID-19, but <em>why</em> and <em>how</em> it matters.</p>
+                <ul>
+                  <li>Focus on <strong>developer well-being</strong> and productivity</li>
+                  <li>Leverage <strong>8 years</strong> of longitudinal Stack Overflow data</li>
+                  <li>Bridge academic research with <strong>industry insights</strong></li>
+                </ul>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/goal.jpg" alt="Mission Visualization">
+              </div>
+            </div>
+          </div>
+
+          <div id="approach" class="info-content">
+            <div class="info-content-layout reverse">
+              <div class="info-text">
+                <p class="keyline"><strong>Data-First Methodology</strong></p>
+                <p>Our research pipeline begins with robust data cleaning and harmonisation, followed by hypothesis-driven exploration. We don't just plot graphs; we tell stories backed by evidence.</p>
+                <ul>
+                  <li><strong>Reproducibility:</strong> All code is modular and documented</li>
+                  <li><strong>Validation:</strong> Cross-check findings across multiple dimensions</li>
+                  <li><strong>Clarity:</strong> Visual narratives designed for broad audiences</li>
+                </ul>
+                <p>This results in actionable insights for HR leaders, policy makers, and tech teams rethinking the future of work.</p>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/data.jpg" alt="Approach Visualization">
+              </div>
+            </div>
+          </div>
+
+          <div id="team" class="info-content">
+            <div class="info-content-layout">
+              <div class="info-text">
+                <p><strong>Team Axis</strong> comprises five data enthusiasts from diverse academic backgrounds, united by a shared curiosity about how technology shapes professional life.</p>
+                <p>We bring expertise in:</p>
+                <ul>
+                  <li>Data Science & Statistical Modelling</li>
+                  <li>Human-Computer Interaction & UX</li>
+                  <li>Software Engineering Best Practices</li>
+                  <li>Visual Communication & Storytelling</li>
+                </ul>
+                <p>Our collaborative workflow emphasises peer review, open discussion, and iterative refinement every hypothesis underwent multiple rounds of critique before final approval.</p>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/team.jpeg" alt="Team Visualization">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Dataset Overview</h3>
+        <div class="tabs" id="dataTabs">
+          <div class="tab active" data-target="dataSource">Source & Scope</div>
+          <div class="tab" data-target="dataPrep">Preparation</div>
+          <div class="tab" data-target="dataEthics">Ethics & Limitations</div>
+        </div>
+        <div class="info-wrapper">
+          <div id="dataSource" class="info-content active">
+            <div class="info-content-layout">
+              <div class="info-text">
+                <p class="keyline">Stack Overflow Annual Developer Survey (2017–2025)</p>
+                <p>One of the largest and most comprehensive surveys of developers worldwide. Each year, tens of thousands of developers share insights on their work environment, salaries, technology preferences, and more.</p>
+                <ul>
+                  <li><strong>Sample Size:</strong> ~50,000–100,000 responses annually</li>
+                  <li><strong>Global Reach:</strong> Developers from 180+ countries</li>
+                  <li><strong>Rich Variables:</strong> Work mode, company size, experience, satisfaction, languages, frameworks, and compensation</li>
+                </ul>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/dataset.jpg" alt="Dataset Visualization">
+              </div>
+            </div>
+          </div>
+
+          <div id="dataPrep" class="info-content">
+            <div class="info-content-layout reverse">
+              <div class="info-text">
+                <p class="keyline">Harmonisation & Cleaning</p>
+                <p>Stack Overflow's survey questions evolved over time. We harmonised column names, standardised categorical responses, and handled missing data with rigorous imputation strategies.</p>
+                <ul>
+                  <li><strong>Canonicalised</strong> work mode labels (Remote, Hybrid, On-site)</li>
+                  <li><strong>Unified</strong> company size categories across years</li>
+                  <li><strong>Filtered</strong> incomplete or inconsistent records</li>
+                  <li><strong>Computed</strong> derived variables (e.g., flexibility scores)</li>
+                </ul>
+                <p>The result: a clean, analysis-ready dataset spanning eight critical years of industry evolution.</p>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/process.jpg" alt="Data Preparation">
+              </div>
+            </div>
+          </div>
+
+          <div id="dataEthics" class="info-content">
+            <div class="info-content-layout">
+              <div class="info-text">
+                <p class="keyline">Ethics & Transparency</p>
+                <p>We treat survey respondents' data with care. All analyses are aggregated no individual identification is possible. Stack Overflow's data is publicly available under permissive terms for research use.</p>
+                <p><strong>Limitations:</strong></p>
+                <ul>
+                  <li>Self-selection bias (respondents may differ from non-respondents)</li>
+                  <li>Geographic and demographic skew toward English-speaking regions</li>
+                  <li>Potential response fatigue in lengthy surveys</li>
+                </ul>
+                <p>Despite these constraints, the dataset remains a gold standard for understanding developer trends at scale.</p>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/ethics.jpg" alt="Ethics Visualization">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Why This Analysis Matters</h3>
+        <div class="tabs" id="expTabs">
+          <div class="tab active" data-target="expContext">Context</div>
+          <div class="tab" data-target="expInsight">Key Insights</div>
+          <div class="tab" data-target="expImpact">Real-World Impact</div>
+        </div>
+        <div class="info-wrapper">
+          <div id="expContext" class="info-content active">
+            <div class="info-content-layout">
+              <div class="info-text">
+                <p class="keyline">A Watershed Moment in Work Culture</p>
+                <p>The COVID-19 pandemic accelerated remote and hybrid work by a decade or more. For software developers uniquely positioned with digital-first workflows this shift was both profound and permanent.</p>
+                <p>Our analysis captures this transformation in granular detail, revealing <strong>who adapted fastest</strong>, <strong>who struggled</strong>, and <strong>what long-term patterns emerged</strong>.</p>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/context.jpg" alt="Context Visualization">
+              </div>
+            </div>
+          </div>
+
+          <div id="expInsight" class="info-content">
+            <div class="info-content-layout reverse">
+              <div class="info-text">
+                <p class="keyline">Data-Driven Discoveries</p>
+                <ul>
+                  <li><strong>Remote work surged</strong> from ~15% (pre-COVID) to ~50% (peak pandemic), then stabilised around 35%</li>
+                  <li><strong>Hybrid models</strong> emerged as the dominant equilibrium post-2022</li>
+                  <li><strong>Larger companies</strong> adopted flexibility faster than SMBs</li>
+                  <li><strong>Developer satisfaction</strong> correlates positively with work-mode autonomy</li>
+                  <li><strong>Technology adoption</strong> (languages, frameworks) shows cohort-based lifecycles</li>
+                </ul>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/insight.jpg" alt="Insights Visualization">
+              </div>
+            </div>
+          </div>
+
+          <div id="expImpact" class="info-content">
+            <div class="info-content-layout">
+              <div class="info-text">
+                <p class="keyline">Beyond Academia: Practical Applications</p>
+                <p>This research informs:</p>
+                <ul>
+                  <li><strong>HR Strategy:</strong> Design policies that balance flexibility with collaboration</li>
+                  <li><strong>Tech Leadership:</strong> Understand how framework/language choices evolve</li>
+                  <li><strong>Urban Planning:</strong> Anticipate commuting and real estate trends</li>
+                  <li><strong>Mental Health:</strong> Recognise the well-being implications of different work modes</li>
+                </ul>
+                <p>Our findings bridge the gap between data science and actionable intelligence.</p>
+              </div>
+              <div class="info-placeholder">
+			  <img src="images/impact.jpg" alt="Impact Visualization">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-section">
+        <h2 class="section-title">The Story of Work Mode Transformation</h2>
+        
+        <div class="story-block">
+          <img src="images/before.jpg" alt="Before COVID">
+          <div class="story-text">
+            <span class="story-badge">Stage 1</span>
+            <h4>Before COVID - The Old Normal</h4>
+            <p>Most developers worked on-site, with remote work seen as a perk for senior staff or a necessity for distributed teams. Flexibility was rare and hybrid arrangements virtually non-existent.</p>
+            <p class="story-quote">"Office culture was the default. Remote was the exception."</p>
+          </div>
+        </div>
+
+        <div class="story-block">
+          <div class="story-text">
+            <span class="story-badge">Stage 2</span>
+            <h4>During COVID - The Sudden Shift</h4>
+            <p>Lockdowns forced immediate transitions to remote work. Tools like Slack, Zoom, and GitHub became lifelines for productivity.</p>
+            <p><b>Challenges:</b> communication gaps, mental fatigue, isolation, but also new opportunities for inclusivity.</p>
+          </div>
+          <img src="images/during.jpg" alt="During COVID">
+        </div>
+
+        <div class="story-block">
+          <img src="images/transition.png" alt="Transition Challenges">
+          <div class="story-text">
+            <span class="story-badge">Stage 3</span>
+            <h4>Transition Challenges</h4>
+            <p>Teams struggled with time zones, blurred work-life boundaries, and the loss of spontaneous collaboration. Yet, they built resilience and digital maturity.</p>
+            <p class="story-quote">"Adaptation wasn't optional it became our greatest skill."</p>
+          </div>
+        </div>
+
+        <div class="story-block">
+          <div class="story-text">
+            <span class="story-badge">Stage 4</span>
+            <h4>After COVID - Hybrid Evolution</h4>
+            <p>Hybrid work became the equilibrium: blending autonomy with community. Developers value trust, flexibility, and mental well-being more than ever.</p>
+            <p><b>Outcome:</b> A lasting shift in priorities productivity now measures balance, not presence.</p>
+          </div>
+          <img src="images/after.png" alt="After COVID">
+        </div>
+
+        <div class="story-block">
+          <img src="images/work.png" alt="Future Outlook">
+          <div class="story-text">
+            <span class="story-badge">Stage 5</span>
+            <h4>Why Our Work Matters</h4>
+            <p>This study documents the transformation of an entire profession, helping future developers and organisations learn from data-driven history. It proves that even under crisis, innovation thrives when adaptability meets insight.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard Status Section -->
+      <section class="card" style="background: linear-gradient(135deg, rgba(167, 190, 174, 0.1), rgba(231, 232, 209, 0.1)); border-left: 4px solid var(--accent-color);">
+        <h3>Dashboard Status</h3>
+        <p style="margin-bottom: 15px;">Make sure all dashboards are running before exploring. Each hypothesis requires its own server.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+          <div class="status-badge" data-port="8050">H1A <span class="status-dot">●</span></div>
+          <div class="status-badge" data-port="8051">H1B <span class="status-dot">●</span></div>
+          <div class="status-badge" data-port="8052">H2 <span class="status-dot">●</span></div>
+          <div class="status-badge" data-port="8053">H3 <span class="status-dot">●</span></div>
+          <div class="status-badge" data-port="8054">H4 <span class="status-dot">●</span></div>
+          <div class="status-badge" data-port="8055">H5 <span class="status-dot">●</span></div>
+          <div class="status-badge" data-port="8056">H6A <span class="status-dot">●</span></div>
+          <div class="status-badge" data-port="8057">H6B <span class="status-dot">●</span></div>
+        </div>
+      </section>
+
+      <h2 class="section-title" id="hypotheses-section">Hypotheses</h2>
+
+      <!-- Quick Navigation -->
+      <div class="quick-nav">
+        <span class="quick-nav-title">Quick Jump:</span>
+        <a href="#hyp1a" class="quick-link">H1A</a>
+        <a href="#hyp1b" class="quick-link">H1B</a>
+        <a href="#hyp2" class="quick-link">H2</a>
+        <a href="#hyp3" class="quick-link">H3</a>
+        <a href="#hyp4" class="quick-link">H4</a>
+        <a href="#hyp5" class="quick-link">H5</a>
+        <a href="#hyp6a" class="quick-link">H6A</a>
+        <a href="#hyp6b" class="quick-link">H6B</a>
+      </div>
+
+      <!-- Work Mode & Flexibility Category -->
+      <div class="dashboard-category">
+        <h3>Work Mode & Flexibility Analysis</h3>
+        <p>Understanding how work arrangements evolved during and after COVID-19</p>
+      </div>
+
+      <!-- H1A -->
+      <section id="hyp1a" class="card hypothesis-card category-work-mode">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H1A: Global Shift in Work Mode</h3>
+          <span class="port-badge">Port: 8050</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2017-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Timeline</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> COVID Impact</span>
+        </div>
+        <p>Shows percentage share of Remote / Hybrid / On-site work from 2017–2025, highlighting post-2020 shift patterns.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>Remote work surged from 15% to 50% during pandemic</li>
+            <li>Hybrid models emerged as dominant post-2022</li>
+            <li>Clear COVID-19 inflection point visible in 2020</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">4</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Filters</span>
+              <span class="stat-value">3</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Years</span>
+              <span class="stat-value">9</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Interactive</span>
+            <span class="feature-tag">Time Series</span>
+            <span class="feature-tag">COVID Marker</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Year Range Slider</span>
+            <span class="control-pill">Visualization Type</span>
+            <span class="control-pill">Story Mode Toggle</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8050" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8050" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h1a/run_h1a.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+
+      <!-- H1B -->
+      <section id="hyp1b" class="card hypothesis-card category-work-mode">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H1B: Flexibility by Organization Size</h3>
+          <span class="port-badge">Port: 8051</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2020-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Comparison</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> Company Size</span>
+        </div>
+        <p>Compares work-mode distribution across company sizes, revealing how flexibility varies by organisation scale.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>Larger companies offer significantly more flexibility</li>
+            <li>Small businesses lag in hybrid adoption</li>
+            <li>Enterprise organizations lead in remote work options</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">7</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Filters</span>
+              <span class="stat-value">5</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Categories</span>
+              <span class="stat-value">6</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Multi-Filter</span>
+            <span class="feature-tag">Heatmap</span>
+            <span class="feature-tag">Evolution</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Visualization Type</span>
+            <span class="control-pill">Company Size Filter</span>
+            <span class="control-pill">Experience Level</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8051" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8051" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h1b/run_h1b.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+
+      <!-- H2 -->
+      <section id="hyp2" class="card hypothesis-card category-work-mode">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H2: Flexibility Gap Evolution</h3>
+          <span class="port-badge">Port: 8052</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2017-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Gap Analysis</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> Size Differences</span>
+        </div>
+        <p>Tracks how differences in work flexibility between company sizes evolved over 8 years, revealing the flexibility gap.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>Flexibility gap widened significantly during COVID-19</li>
+            <li>Enterprise vs SMB divide remains substantial</li>
+            <li>Recent convergence trends suggest closing gap</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">7</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Filters</span>
+              <span class="stat-value">4</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Years</span>
+              <span class="stat-value">9</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Gap Tracking</span>
+            <span class="feature-tag">Heatmap</span>
+            <span class="feature-tag">Comparison</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Timeline Type</span>
+            <span class="control-pill">Year Comparison</span>
+            <span class="control-pill">Company Size Deep Dive</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8052" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8052" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h2/run_h2.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+
+      <!-- H3 -->
+      <section id="hyp3" class="card hypothesis-card category-work-mode">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H3: The Flexibility Dividend</h3>
+          <span class="port-badge">Port: 8053</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2017-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Satisfaction</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> Well-being</span>
+        </div>
+        <p>Examines satisfaction differences between pre-COVID and post-COVID respondents across work modes, exploring the well-being impact.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>Remote work correlates with higher satisfaction scores</li>
+            <li>Hybrid arrangements offer balanced benefits</li>
+            <li>On-site satisfaction declined post-COVID</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">6</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Filters</span>
+              <span class="stat-value">4</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Periods</span>
+              <span class="stat-value">2</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Box Plot</span>
+            <span class="feature-tag">Pre/Post</span>
+            <span class="feature-tag">Rankings</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Visualization Type</span>
+            <span class="control-pill">Work Mode Selector</span>
+            <span class="control-pill">Period Filter</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8053" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8053" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h3/run_h3.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+
+      <!-- Compensation Category -->
+      <div class="dashboard-category">
+        <h3>Compensation & Developer Experience</h3>
+        <p>Exploring the relationship between experience, skills, and compensation</p>
+      </div>
+
+      <!-- H4 -->
+      <section id="hyp4" class="card hypothesis-card category-compensation">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H4: Experience vs Compensation</h3>
+          <span class="port-badge">Port: 8054</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2017-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Correlation</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> Salary Analysis</span>
+        </div>
+        <p>Tests correlation between experience and compensation under different work modes, revealing how experience, work mode, and company size influence developer salaries.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>Strong positive correlation between experience and compensation</li>
+            <li>Work mode significantly affects compensation patterns</li>
+            <li>Company size influences salary ranges substantially</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">1</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Filters</span>
+              <span class="stat-value">3</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Data Points</span>
+              <span class="stat-value">50K+</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Scatter Plot</span>
+            <span class="feature-tag">Trendlines</span>
+            <span class="feature-tag">Outlier Clipping</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Year Slider</span>
+            <span class="control-pill">Work Mode Filter</span>
+            <span class="control-pill">Company Size Filter</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8054" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8054" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h4/run_h4.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+
+      <!-- Technology Category -->
+      <div class="dashboard-category">
+        <h3>Technology Adoption & Evolution</h3>
+        <p>Tracking the rise and fall of programming languages and frameworks</p>
+      </div>
+
+      <!-- H5 -->
+      <section id="hyp5" class="card hypothesis-card category-technology">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H5: Programming Language Evolution</h3>
+          <span class="port-badge">Port: 8055</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2017-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Trend Analysis</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> Tech Adoption</span>
+        </div>
+        <p>Tracks language adoption shares over time to reveal long-term trends in programming language popularity and the rise/fall of different technologies.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>JavaScript maintains consistent dominance across all years</li>
+            <li>Python shows steady growth trajectory</li>
+            <li>Legacy languages experience gradual decline</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">1</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Languages</span>
+              <span class="stat-value">12</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Years</span>
+              <span class="stat-value">9</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Multi-Line</span>
+            <span class="feature-tag">Time Series</span>
+            <span class="feature-tag">Top 12</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Language Selector</span>
+            <span class="control-pill">Multi-Select</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8055" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8055" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h5/run_h5.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+
+      <!-- H6A -->
+      <section id="hyp6a" class="card hypothesis-card category-technology">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H6A: Framework Cohorts - Rise & Fall</h3>
+          <span class="port-badge">Port: 8057</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2017-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Cohort Analysis</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> Front-End vs Back-End</span>
+        </div>
+        <p>Groups frameworks into Front-End vs Back-End families and compares adoption trajectories across cohorts, revealing competitive dynamics.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>React dominates front-end framework landscape</li>
+            <li>Express shows sustained growth in back-end</li>
+            <li>Framework consolidation trends observable</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">1</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Cohorts</span>
+              <span class="stat-value">3</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Top N</span>
+              <span class="stat-value">3-15</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Cohort Colors</span>
+            <span class="feature-tag">Classification</span>
+            <span class="feature-tag">Dynamic Top N</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Cohort Selector</span>
+            <span class="control-pill">Top N Slider</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8056" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8056" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h6a/run_h6a.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+
+      <!-- H6B -->
+      <section id="hyp6b" class="card hypothesis-card category-technology">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+          <h3>H6B: Framework Lifecycles - Entry, Peak & Decline</h3>
+          <span class="port-badge">Port: 8057</span>
+        </div>
+        <div class="hyp-metadata">
+          <span class="hyp-meta-item"><strong>Period:</strong> 2017-2025</span>
+          <span class="hyp-meta-item"><strong>Type:</strong> Lifecycle</span>
+          <span class="hyp-meta-item"><strong>Focus:</strong> Peak Detection</span>
+        </div>
+        <p>Identifies the year each framework peaked and visualises rise-to-decline lifecycles across the 2017–2025 period, with detailed statistics table.</p>
+        
+        <div class="key-insights">
+          <div class="insight-header">
+            <span class="insight-title">Key Insights</span>
+          </div>
+          <ul class="insight-list">
+            <li>Fast-growing frameworks reach peak in 1-2 years</li>
+            <li>Mature frameworks demonstrate stable usage patterns</li>
+            <li>Declining frameworks identifiable past their peak</li>
+          </ul>
+        </div>
+
+        <div class="dashboard-preview">
+          <div class="preview-info">
+            <div class="preview-stat">
+              <span class="stat-label">Visualizations</span>
+              <span class="stat-value">2</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Frameworks</span>
+              <span class="stat-value">All</span>
+            </div>
+            <div class="preview-stat">
+              <span class="stat-label">Metrics</span>
+              <span class="stat-value">3</span>
+            </div>
+          </div>
+          <div class="preview-features">
+            <span class="feature-tag">Peak Markers</span>
+            <span class="feature-tag">Data Table</span>
+            <span class="feature-tag">Lifecycle Stats</span>
+          </div>
+        </div>
+
+        <div class="interaction-guide">
+          <span class="guide-label">Available Controls:</span>
+          <div class="control-pills">
+            <span class="control-pill">Framework Selector</span>
+            <span class="control-pill">Multi-Select</span>
+          </div>
+        </div>
+
+        <div class="iframe-container">
+          <a href="http://127.0.0.1:8057" target="_blank" class="expand-btn">Open in New Tab</a>
+          <div class="iframe-loading">
+            <div class="spinner"></div>
+            <p>Loading dashboard...</p>
+          </div>
+          <iframe class="plot" data-src="http://127.0.0.1:8057" onload="this.classList.add('loaded'); this.previousElementSibling.style.display='none';" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div style=\'padding: 40px; text-align: center; color: var(--muted);\'><p>Dashboard not available</p><p style=\'font-size: 14px; margin-top: 10px;\'>Make sure the server is running:<br><code>python h6b/run_h6b.py</code></p></div>');"></iframe>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>Created by Team Axis — ICT305 Group Project 2025</p>
+    </footer>
+  </main>
+
+  <!-- Back to Top Button -->
+  <button id="backToTop">↑</button>
+
+  <script>
+    const body = document.body;
+	document.getElementById('themeToggle').addEventListener('click',()=>{
+	  const current = body.getAttribute('data-theme') || 'dark';
+	  body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+	});
+
+    function setupTabs(id){
+      const container=document.getElementById(id);
+      if(!container) return;
+      const tabs=container.querySelectorAll('.tab');
+      const wrapper=container.parentElement;
+      const contents=wrapper.querySelectorAll('.info-content');
+      tabs.forEach(tab=>{
+        tab.addEventListener('click',()=>{
+          tabs.forEach(t=>t.classList.remove('active'));
+          tab.classList.add('active');
+          const target=tab.dataset.target;
+          contents.forEach(c=>{
+            c.classList.remove('active');
+          });
+          setTimeout(()=>{
+            contents.forEach(c=>{
+              if(c.id===target){
+                c.classList.add('active');
+              }
+            });
+          },50);
+        });
+      });
+    }
+    ['introTabs','dataTabs','expTabs'].forEach(setupTabs);
+
+    function scrollFade(){
+      const elems=document.querySelectorAll('.card, .hero, .story-block, .hypothesis-card, footer, .section-title');
+      elems.forEach(el=>{
+        const rect=el.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight - 80;
+        if(isVisible && !el.classList.contains('visible')){
+          el.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll',scrollFade);
+    window.addEventListener('DOMContentLoaded',scrollFade);
+
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle=>{
+      toggle.addEventListener('click',()=>{
+        const next=toggle.nextElementSibling;
+        if(next.style.display==='block'){next.style.display='none'; toggle.classList.remove('open');}
+        else{next.style.display='block'; toggle.classList.add('open');}
+      });
+    });
+
+    document.querySelectorAll('nav a').forEach(link=>{
+      link.addEventListener('click', e=>{
+        e.preventDefault();
+        document.querySelector(link.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+      });
+    });
+
+    // Dashboard Status Checker
+    async function checkDashboardStatus() {
+      const badges = document.querySelectorAll('.status-badge');
+      badges.forEach(async (badge) => {
+        const port = badge.dataset.port;
+        try {
+          const response = await fetch(`http://127.0.0.1:${port}`, { mode: 'no-cors' });
+          badge.classList.add('online');
+          badge.title = 'Dashboard is running';
+        } catch (error) {
+          badge.classList.add('offline');
+          badge.title = `Dashboard is not running. Start it with: python h*/run_h*.py`;
+        }
+      });
+    }
+    setTimeout(checkDashboardStatus, 1000);
+
+    // Back to Top Button
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 500) {
+        backToTop.classList.add('visible');
+      } else {
+        backToTop.classList.remove('visible');
+      }
+    });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Quick Nav smooth scroll
+    document.querySelectorAll('.quick-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(link.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+      });
+    });
+
+    // Lazy Load iframes
+    const iframeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const iframe = entry.target;
+          if (iframe.dataset.src && !iframe.src) {
+            iframe.src = iframe.dataset.src;
+          }
+          iframeObserver.unobserve(iframe);
+        }
+      });
+    }, {
+      rootMargin: '200px'
+    });
+
+    document.querySelectorAll('iframe.plot').forEach(iframe => {
+      iframeObserver.observe(iframe);
+    });
+  </script>
+</body>
+</html>
