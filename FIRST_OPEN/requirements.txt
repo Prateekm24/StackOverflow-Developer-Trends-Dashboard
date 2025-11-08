@@ -1,0 +1,25 @@
+# Stack Overflow Dashboard - Python Dependencies
+# Updated: 2025-11-07
+# Compatible with Python 3.8+
+
+# Data Processing
+pandas>=2.0.0
+
+# Visualization
+plotly>=5.14.0
+
+# Dashboard Framework
+dash>=2.14.0
+dash-bootstrap-components>=1.5.0
+
+# Statistical Analysis (for H4 trendlines)
+# Note: statsmodels is typically installed with pandas/plotly
+# but explicitly listed for OLS trendline functionality
+statsmodels>=0.14.0
+
+# Optional: Development Tools
+# Uncomment if needed for development
+# jupyter>=1.0.0
+# notebook>=7.0.0
+# black>=23.0.0
+# flake8>=6.0.0
